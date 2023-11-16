@@ -107,6 +107,7 @@ TreeNode *buildHuffmanTree(TreeNode *nodes, int numNodes)
     delete[] minHeap;
     return root;
 }
+
 void generateHuffmanCodes(TreeNode *node, char *code, char **codes)
 {
     if (!node)
@@ -114,9 +115,6 @@ void generateHuffmanCodes(TreeNode *node, char *code, char **codes)
 
     if (node->symbol != '\0')
     {
-        // Imprime el símbolo y su código asignado
-        std::cout << "Simbolo: " << node->symbol << ", Código: " << code << std::endl;
-
         // Copia el código directamente sin usar strlen
         int i = 0;
         while (code[i] != '\0')
@@ -152,9 +150,9 @@ void generateHuffmanCodes(TreeNode *node, char *code, char **codes)
     delete[] right_code;
 }
 
+
 void decodeHuffmanText(TreeNode *root, const char *textoCodificado)
 {
-    //std::cout << "vamos a ver si es antes o despues "<<textoCodificado<< std::endl;
     TreeNode *current = root;
     for (int i = 0; textoCodificado[i] != '\0'; i++)
     {
@@ -169,15 +167,7 @@ void decodeHuffmanText(TreeNode *root, const char *textoCodificado)
 
         if (current->left_son == nullptr && current->right_son == nullptr)
         {
-            // Si el símbolo es un espacio en blanco (representado por ' '), imprímelo como tal
-            if (current->symbol == ' ')
-            {
-                std::cout << " ";
-            }
-            else
-            {
-                std::cout << current->symbol;
-            }
+            std::cout << current->symbol;
             current = root;
         }
     }
@@ -185,7 +175,7 @@ void decodeHuffmanText(TreeNode *root, const char *textoCodificado)
 
 int main()
 {
-    const int numNodes = 28;
+    const int numNodes = 26;
     TreeNode nodes[numNodes];
 
     nodes[0].symbol = 'a';
@@ -266,7 +256,7 @@ int main()
     nodes[12].left_son = nullptr;
     nodes[12].right_son = nullptr;
 
-    nodes[13].symbol = 'n';
+    nodes[13].symbol = 'p';
     nodes[13].probability = 0.94;
     nodes[13].parent = nullptr;
     nodes[13].left_son = nullptr;
@@ -344,17 +334,11 @@ int main()
     nodes[25].left_son = nullptr;
     nodes[25].right_son = nullptr;
 
-    nodes[26].symbol = 'z';
-    nodes[26].probability = 0.41;
-    nodes[26].parent = nullptr;
-    nodes[26].left_son = nullptr;
-    nodes[26].right_son = nullptr;
-
-    nodes[27].symbol = ' ';       // Usamos ' ' para representar un espacio en blanco
-    nodes[27].probability = 0.90; // La probabilidad de que ocurra un espacio en blanco
-    nodes[27].parent = nullptr;
-    nodes[27].left_son = nullptr;
-    nodes[27].right_son = nullptr;
+    nodes[25].symbol = 'Z';
+    nodes[25].probability = 0.41;
+    nodes[25].parent = nullptr;
+    nodes[25].left_son = nullptr;
+    nodes[25].right_son = nullptr;
 
     TreeNode *root = buildHuffmanTree(nodes, numNodes);
 
@@ -368,17 +352,16 @@ int main()
     char root_code[32] = "";
     generateHuffmanCodes(root, root_code, huffmanCodes);
 
-    std::cout << "Ingrese una cadena para codificar: ";
-    char inputText[256];
-    //std::cin.ignore(); Este cin.ignore es el que me estaba haciendo clavo
-    std::cin.getline(inputText, sizeof(inputText));
+    std::cout << "Ingrese una palabra para codificar: ";
+    char inputWord[256];
+    std::cin >> inputWord;
 
-    char textoCodificado[256 * 32] = ""; // Ajustar el tamaño según tus necesidades
+    char textoCodificado[256] = "";
     int index = 0;
 
-    for (int i = 0; inputText[i] != '\0'; i++)
+    for (int i = 0; inputWord[i] != '\0'; i++)
     {
-        char c = tolower(inputText[i]);
+        char c = tolower(inputWord[i]);
         char *huffmanCode = huffmanCodes[c];
 
         int j = 0;
