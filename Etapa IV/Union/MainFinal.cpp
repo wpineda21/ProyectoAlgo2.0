@@ -115,7 +115,7 @@ void generateHuffmanCodes(TreeNode *node, char *code, char **codes)
     if (node->symbol != '\0')
     {
         // Imprime el símbolo y su código asignado
-        std::cout << "Simbolo: " << node->symbol << ", Codigo: " << code << std::endl;
+        // std::cout << "Simbolo: " << node->symbol << ", Codigo: " << code << std::endl;
 
         // Copia el código directamente sin usar strlen
         int i = 0;
@@ -154,7 +154,7 @@ void generateHuffmanCodes(TreeNode *node, char *code, char **codes)
 
 void decodeHuffmanText(TreeNode *root, const char *textoCodificado)
 {
-    //std::cout << "vamos a ver si es antes o despues "<<textoCodificado<< std::endl;
+    // std::cout << "vamos a ver si es antes o despues "<<textoCodificado<< std::endl;
     TreeNode *current = root;
     for (int i = 0; textoCodificado[i] != '\0'; i++)
     {
@@ -368,39 +368,132 @@ int main()
     char root_code[32] = "";
     generateHuffmanCodes(root, root_code, huffmanCodes);
 
-    std::cout << "Ingrese una cadena para codificar: ";
     char inputText[256];
-    //std::cin.ignore(); Este cin.ignore es el que me estaba haciendo clavo
-    std::cin.getline(inputText, sizeof(inputText));
-
-    char textoCodificado[256 * 32] = ""; // Ajustar el tamaño según tus necesidades
+    char textoCodificado[256 * 32] = "";
     int index = 0;
 
-    for (int i = 0; inputText[i] != '\0'; i++)
+    int option;
+    bool textoAlmacenado = false;
+    bool huffmanAplicado = false;
+    int contador = 0;
+
+    do
     {
-        //char c = tolower(inputText[i]);
-        char *huffmanCode = huffmanCodes[inputText[i]];
+        std::cout << "1. Ingresar texto a modificar\n"
+                  << "2. Consultar texto a modificar almacenado\n"
+                  << "3. Aplicar Algoritmo de Huffman\n"
+                  << "4. Consultar texto modificado almacenado\n"
+                  << "5. Salir del programa\n"
+                  << "Ingrese la opcion: ";
+        std::cin >> option;
+        std::cout << "\n"
+                  << std::endl;
+        std::cin.ignore(); // Limpiar el buffer de entrada
 
-        int j = 0;
-        while (huffmanCode[j] != '\0')
+        switch (option)
         {
-            textoCodificado[index++] = huffmanCode[j++];
+        case 1:
+        {
+
+            std::cout << "Ingrese una cadena para codificar: ";
+            inputText[0] = '\0'; // Inicializa inputText a una cadena vacía
+            std::cin.getline(inputText, sizeof(inputText));
+            textoAlmacenado = true;
+            huffmanAplicado = false;
+
+            // Reconstruye el árbol de Huffman y regenera los códigos de Huffman
+            root = buildHuffmanTree(nodes, numNodes);
+            for (int i = 0; i < 256; i++)
+            {
+                huffmanCodes[i] = new char[32];
+                huffmanCodes[i][0] = '\0';
+            }
+            char root_code[32] = "";
+            generateHuffmanCodes(root, root_code, huffmanCodes);
+
+            break;
         }
-    }
+        case 2:
+        {
+            std::cout << "Texto a modificar almacenado: ";
+            bool isEmpty = true; // Inicializar la variable
 
-    // Asegúrate de agregar el carácter nulo al final de la cadena.
-    textoCodificado[index] = '\0';
+            for (int i = 0; inputText[i] != '\0'; i++)
+            {
+                std::cout << inputText[i];
+                isEmpty = false;
+            }
 
-    std::cout << "Texto codificado: " << textoCodificado << std::endl;
+            if (isEmpty)
+            {
+                std::cout << "No hay Ningun Texto Almacenado";
+            }
 
+            std::cout << std::endl;
+            break;
+        }
+        case 3:
+        {
+            if (!textoAlmacenado)
+            {
+                std::cout << "Error: No hay texto almacenado. Ingrese un texto primero." << std::endl;
+            }
+            else if (huffmanAplicado)
+            {
+                std::cout << "Error: El algoritmo de Huffman ya se aplicó a este texto." << std::endl;
+            }
+            else
+            {
+                for (int i = 0; inputText[i] != '\0'; i++)
+                {
+                    // char c = tolower(inputText[i]);
+                    char *huffmanCode = huffmanCodes[inputText[i]];
+
+                    int j = 0;
+                    while (huffmanCode[j] != '\0')
+                    {
+                        textoCodificado[index++] = huffmanCode[j++];
+                    }
+                }
+                // Asegúrate de agregar el carácter nulo al final de la cadena.
+                textoCodificado[index] = '\0';
+                std::cout << "Texto codificado: " << textoCodificado << std::endl;
+                huffmanAplicado = true;
+                for (int i = 0; i < 256; i++)
+                {
+                    delete[] huffmanCodes[i];
+                }
+            }
+            break;
+        }
+        case 4:
+        {
+            std::cout << "Resultados Del Algoritmo: " << std::endl;
+            std::cout << "Texto Cifrado por Huffman: " << textoCodificado << std::endl;
+            std::cout << "Texto Decifrado: ";
+            decodeHuffmanText(root, textoCodificado);
+            std::cout << std::endl;
+            break;
+        }
+        case 5:
+        {
+            std::cout << "Saliendo del programa.\n";
+            break;
+        }
+        default:
+        {
+            std::cout << "Opcion no válida. Inténtelo de nuevo.\n";
+            break;
+        }
+        }
+
+    } while (option != 5);
+
+    // Liberar memoria
     for (int i = 0; i < 256; i++)
-    {   
+    {
         delete[] huffmanCodes[i];
     }
-
-    std::cout << "Texto decodificado: ";
-    decodeHuffmanText(root, textoCodificado);
-    std::cout << std::endl;
 
     return 0;
 }
