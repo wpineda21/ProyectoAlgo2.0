@@ -186,7 +186,7 @@ void buildHuffmanTree(string text)
 // Implementación del algoritmo de codificación de Huffman en C++
 int main()
 {
-    string text = "Barcelona el Mejor Equipo del Mundo Vamos ASDAarajo de la lora zorrrraaaaaaaaaaaaaaa";
+    string text = "El veloz murciélago hindu comía feliz cardillo y kiwi";
     buildHuffmanTree(text);
 
     return 0;
