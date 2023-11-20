@@ -20,78 +20,82 @@ TreeNode *crearNodo(char symbol, double probability)
     return newnode;
 }
 
-void MinHeapify(TreeNode **heap, int heapSize, int currentIdx)
+void MinHeapify(TreeNode *root)
 {
-    while (true)
+    if (!root )
+        return;
+
+    TreeNode *smallest = root;
+    TreeNode *left = root->left_son;
+    TreeNode *right = root->right_son;
+
+    if (left && left->probability < smallest->probability)
     {
-        int leftChildIdx = 2 * currentIdx + 1;
-        int rightChildIdx = 2 * currentIdx + 2;
-        int smallestIdx = currentIdx;
+        smallest = left;
+    }
+    if (right && right->probability < smallest->probability)
+    {
+        smallest = right;
+    }
 
-        if (leftChildIdx < heapSize && heap[leftChildIdx]->probability < heap[smallestIdx]->probability)
-        {
-            smallestIdx = leftChildIdx;
-        }
-        if (rightChildIdx < heapSize && heap[rightChildIdx]->probability < heap[smallestIdx]->probability)
-        {
-            smallestIdx = rightChildIdx;
-        }
+    if (smallest != root)
+    {
+        std::swap(root->probability, smallest->probability);
+        MinHeapify(smallest);
+    }
+}
 
-        if (smallestIdx != currentIdx)
+void buildMinHeap(TreeNode *nodes, int numNodes)
+{
+    for (int i = numNodes / 2 - 1; i >= 0; i--)
+    {
+        MinHeapify(&nodes[i]);
+    }
+}
+
+void MinHeapInsert(TreeNode *root, TreeNode *newNode)
+{
+if (!root || !newNode)
+    return;
+
+    if (!root->left_son)
+    {
+        root->left_son = newNode;
+        newNode->parent = root;
+    }
+    else if (!root->right_son)
+    {
+        root->right_son = newNode;
+        newNode->parent = root;
+    }
+    else
+    {
+        // Insert in the subtree with lower probability
+        if (root->left_son->probability < root->right_son->probability)
         {
-            std::swap(heap[currentIdx], heap[smallestIdx]);
-            currentIdx = smallestIdx;
+            MinHeapInsert(root->left_son, newNode);
         }
         else
         {
-            break;
+            MinHeapInsert(root->right_son, newNode);
         }
     }
-}
 
-void buildMinHeap(TreeNode **heap, int size)
-{
-    for (int i = size / 2 - 1; i >= 0; i--)
-    {
-        MinHeapify(heap, size, i);
-    }
-}
-
-void MinHeapInsert(TreeNode **heap, TreeNode *newNode, int &heapSize)
-{
-    heap[heapSize] = newNode;
-    int currentIdx = heapSize;
-
-    while (currentIdx > 0 && heap[currentIdx]->probability < heap[(currentIdx - 1) / 2]->probability)
-    {
-        std::swap(heap[currentIdx], heap[(currentIdx - 1) / 2]);
-        currentIdx = (currentIdx - 1) / 2;
-    }
-
-    heapSize++;
+    // Adjust the tree after insertion
+    MinHeapify(root);
 }
 
 TreeNode *buildHuffmanTree(TreeNode *nodes, int numNodes)
 {
-    TreeNode **minHeap = new TreeNode *[numNodes];
-    int size = 0;
+    buildMinHeap(nodes, numNodes);
 
-    for (int i = 0; i < numNodes; i++)
+    while (numNodes > 1)
     {
-        MinHeapInsert(minHeap, nodes + i, size);
-    }
+        TreeNode *left = nodes;
+        MinHeapify(left);
 
-    while (size > 1)
-    {
-        TreeNode *left = minHeap[0];
-        std::swap(minHeap[0], minHeap[size - 1]);
-        size--;
-        MinHeapify(minHeap, size, 0);
-
-        TreeNode *right = minHeap[0];
-        std::swap(minHeap[0], minHeap[size - 1]);
-        size--;
-        MinHeapify(minHeap, size, 0);
+        TreeNode *right = nodes + 1;
+        MinHeapify(right);
 
         TreeNode *merged = crearNodo('\0', left->probability + right->probability);
         merged->left_son = left;
@@ -99,62 +103,32 @@ TreeNode *buildHuffmanTree(TreeNode *nodes, int numNodes)
         left->parent = merged;
         right->parent = merged;
 
-        MinHeapInsert(minHeap, merged, size);
+        nodes = merged;
+        numNodes--;
+
+        MinHeapInsert(nodes, merged);
+        buildMinHeap(nodes, numNodes);
     }
 
-    TreeNode *root = minHeap[0];
-    root->parent = nullptr;
-    delete[] minHeap;
-    return root;
+    return nodes;
 }
-void generateHuffmanCodes(TreeNode *node, char *code, char **codes)
+
+void generateHuffmanCodes(TreeNode *node, std::string code, std::string *codes)
 {
     if (!node)
         return;
 
     if (node->symbol != '\0')
     {
-        // Imprime el símbolo y su código asignado
-        // std::cout << "Simbolo: " << node->symbol << ", Codigo: " << code << std::endl;
-
-        // Copia el código directamente sin usar strlen
-        int i = 0;
-        while (code[i] != '\0')
-        {
-            codes[node->symbol][i] = code[i];
-            i++;
-        }
-        codes[node->symbol][i] = '\0';
+        codes[node->symbol] = code;
     }
 
-    // Construye los códigos izquierdo y derecho sin usar strlen
-    char *left_code = new char[32];
-    char *right_code = new char[32];
-
-    int i = 0;
-    while (code[i] != '\0')
-    {
-        left_code[i] = code[i];
-        right_code[i] = code[i];
-        i++;
-    }
-
-    left_code[i] = '0';
-    left_code[i + 1] = '\0';
-
-    right_code[i] = '1';
-    right_code[i + 1] = '\0';
-
-    generateHuffmanCodes(node->left_son, left_code, codes);
-    generateHuffmanCodes(node->right_son, right_code, codes);
-
-    delete[] left_code;
-    delete[] right_code;
+    generateHuffmanCodes(node->left_son, code + "0", codes);
+    generateHuffmanCodes(node->right_son, code + "1", codes);
 }
 
-void decodeHuffmanText(TreeNode *root, const char *textoCodificado)
+void decodeHuffmanText(TreeNode *root, const std::string &textoCodificado)
 {
-    // std::cout << "vamos a ver si es antes o despues "<<textoCodificado<< std::endl;
     TreeNode *current = root;
     for (int i = 0; textoCodificado[i] != '\0'; i++)
     {
@@ -169,25 +143,16 @@ void decodeHuffmanText(TreeNode *root, const char *textoCodificado)
 
         if (current->left_son == nullptr && current->right_son == nullptr)
         {
-            // Si el símbolo es un espacio en blanco (representado por ' '), imprímelo como tal
-            if (current->symbol == ' ')
-            {
-                std::cout << " ";
-            }
-            else
-            {
-                std::cout << current->symbol;
-            }
-            current = root;
+            std::cout << current->symbol;
+            current = root; // Reset the current node to the root after decoding a symbol
         }
     }
 }
 
 int main()
 {
-    const int numNodes = 28;
+    const int numNodes = 27; // Modified to exclude ' '
     TreeNode nodes[numNodes];
-
     nodes[0].symbol = 'a';
     nodes[0].probability = 0.15;
     nodes[0].parent = nullptr;
@@ -358,18 +323,12 @@ int main()
 
     TreeNode *root = buildHuffmanTree(nodes, numNodes);
 
-    char *huffmanCodes[256];
-    for (int i = 0; i < 256; i++)
-    {
-        huffmanCodes[i] = new char[32];
-        huffmanCodes[i][0] = '\0';
-    }
+    std::string huffmanCodes[256];
+    generateHuffmanCodes(root, "", huffmanCodes);
 
-    char root_code[32] = "";
-    generateHuffmanCodes(root, root_code, huffmanCodes);
+    std::string inputText;
+    std::string textoCodificado;
 
-    char inputText[256];
-    char textoCodificado[256 * 32] = "";
     int index = 0;
 
     int option;
@@ -401,14 +360,14 @@ int main()
         case 1:
         {
             // Reset variables
-            inputText[0] = '\0';
-            textoCodificado[0] = '\0';
+            std::string inputText;
+            std::string textoCodificado;
             index = 0;
             textoAlmacenado = false;
             huffmanAplicado = false;
 
             std::cout << "Ingrese una cadena para codificar: ";
-            std::cin.getline(inputText, sizeof(inputText));
+            std::getline(std::cin, inputText);
 
             textoAlmacenado = true;
 
@@ -459,7 +418,7 @@ int main()
                 for (int i = 0; inputText[i] != '\0'; i++)
                 {
                     // char c = tolower(inputText[i]);
-                    char *huffmanCode = huffmanCodes[inputText[i]];
+                    std::string huffmanCode = huffmanCodes[static_cast<unsigned char>(inputText[i])];
 
                     int j = 0;
                     while (huffmanCode[j] != '\0')
@@ -471,10 +430,6 @@ int main()
                 textoCodificado[index] = '\0';
                 std::cout << "Texto codificado: " << textoCodificado << std::endl;
                 huffmanAplicado = true;
-                for (int i = 0; i < 256; i++)
-                {
-                    delete[] huffmanCodes[i];
-                }
             }
             break;
         }
@@ -507,12 +462,6 @@ int main()
         }
 
     } while (option != 5);
-
-    // Liberar memoria
-    for (int i = 0; i < 256; i++)
-    {
-        delete[] huffmanCodes[i];
-    }
 
     return 0;
 }
