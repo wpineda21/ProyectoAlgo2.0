@@ -2,41 +2,44 @@
 
 struct TreeNode
 {
-    char symbol;
-    double probability;
-    TreeNode *parent;
-    TreeNode *left_son;
-    TreeNode *right_son;
+    char symbol; // Este es un carácter que representa el símbolo del nodo.
+    double probability; // Esta es la probabilidad asociada con el nodo.
+    TreeNode *parent; // Este es un puntero al nodo padre en el árbol.
+    TreeNode *left_son; // Este es un puntero al hijo izquierdo del nodo.
+    TreeNode *right_son; // Este es un puntero al hijo derecho del nodo.
 };
-
 TreeNode *crearNodo(char symbol, double probability)
 {
-    TreeNode *newnode = new TreeNode;
-    newnode->symbol = symbol;
-    newnode->probability = probability;
-    newnode->parent = nullptr;
-    newnode->left_son = nullptr;
-    newnode->right_son = nullptr;
-    return newnode;
+    TreeNode *newnode = new TreeNode; // Crea un nuevo nodo de tipo TreeNode.
+    newnode->symbol = symbol; // Asigna el valor del símbolo al nodo.
+    newnode->probability = probability; // Asigna el valor de la probabilidad al nodo.
+    newnode->parent = nullptr; // Inicializa el puntero al nodo padre como nulo.
+    newnode->left_son = nullptr; // Inicializa el puntero al hijo izquierdo como nulo.
+    newnode->right_son = nullptr; // Inicializa el puntero al hijo derecho como nulo.
+    return newnode; // Devuelve el puntero al nuevo nodo creado.
 }
+
 
 void MinHeapify(TreeNode **heap, int heapSize, int currentIdx)
 {
     while (true)
     {
-        int leftChildIdx = 2 * currentIdx + 1;
-        int rightChildIdx = 2 * currentIdx + 2;
-        int smallestIdx = currentIdx;
+        int leftChildIdx = 2 * currentIdx + 1; // Calcula el índice del hijo izquierdo.
+        int rightChildIdx = 2 * currentIdx + 2; // Calcula el índice del hijo derecho.
+        int smallestIdx = currentIdx; // Asume que el nodo actual es el más pequeño.
 
+        // Si el hijo izquierdo existe y es menor que el nodo actual, actualiza el índice del más pequeño.
         if (leftChildIdx < heapSize && heap[leftChildIdx]->probability < heap[smallestIdx]->probability)
         {
             smallestIdx = leftChildIdx;
         }
+        // Si el hijo derecho existe y es menor que el nodo más pequeño hasta ahora, actualiza el índice del más pequeño.
         if (rightChildIdx < heapSize && heap[rightChildIdx]->probability < heap[smallestIdx]->probability)
         {
             smallestIdx = rightChildIdx;
         }
 
+        // Si el índice del más pequeño ha cambiado, intercambia el nodo actual con el más pequeño y actualiza el índice actual.
         if (smallestIdx != currentIdx)
         {
             std::swap(heap[currentIdx], heap[smallestIdx]);
@@ -44,6 +47,7 @@ void MinHeapify(TreeNode **heap, int heapSize, int currentIdx)
         }
         else
         {
+            // Si el índice del más pequeño no ha cambiado, significa que el nodo actual y todos sus descendientes ya cumplen la propiedad de montículo, por lo que se rompe el ciclo.
             break;
         }
     }
@@ -51,86 +55,105 @@ void MinHeapify(TreeNode **heap, int heapSize, int currentIdx)
 
 void buildMinHeap(TreeNode **heap, int size)
 {
+    // Comienza desde el último nodo que tiene al menos un hijo (es decir, el padre del último nodo en el array) y sube.
     for (int i = size / 2 - 1; i >= 0; i--)
     {
+        // Llama a MinHeapify en el nodo actual para ajustar el subárbol con raíz en el nodo actual.
         MinHeapify(heap, size, i);
     }
 }
 
 void MinHeapInsert(TreeNode **heap, TreeNode *newNode, int &heapSize)
 {
+    // Inserta el nuevo nodo al final del montículo
     heap[heapSize] = newNode;
+    // Guarda el índice del nuevo nodo
     int currentIdx = heapSize;
 
+    // Mientras el nodo no sea la raíz y su probabilidad sea menor que la de su padre
     while (currentIdx > 0 && heap[currentIdx]->probability < heap[(currentIdx - 1) / 2]->probability)
     {
+        // Intercambia el nodo con su padre
         std::swap(heap[currentIdx], heap[(currentIdx - 1) / 2]);
+        // Actualiza el índice al del padre
         currentIdx = (currentIdx - 1) / 2;
     }
 
+    // Incrementa el tamaño del montículo
     heapSize++;
 }
 
+
 TreeNode *buildHuffmanTree(TreeNode *nodes, int numNodes)
 {
+    // Crea un nuevo array de punteros TreeNode para actuar como un min heap
     TreeNode **minHeap = new TreeNode *[numNodes];
     int size = 0;
 
+    // Inserta todos los nodos en el min heap
     for (int i = 0; i < numNodes; i++)
     {
         MinHeapInsert(minHeap, nodes + i, size);
     }
 
+    // Continúa hasta que solo quede un nodo en el heap
     while (size > 1)
     {
+        // Elimina el nodo con la menor probabilidad del heap
         TreeNode *left = minHeap[0];
         std::swap(minHeap[0], minHeap[size - 1]);
         size--;
         MinHeapify(minHeap, size, 0);
 
+        // Elimina el siguiente nodo con la menor probabilidad del heap
         TreeNode *right = minHeap[0];
         std::swap(minHeap[0], minHeap[size - 1]);
         size--;
         MinHeapify(minHeap, size, 0);
 
+        // Crea un nuevo nodo con una probabilidad igual a la suma de las probabilidades de los dos nodos eliminados
         TreeNode *merged = crearNodo('\0', left->probability + right->probability);
         merged->left_son = left;
         merged->right_son = right;
         left->parent = merged;
         right->parent = merged;
 
+        // Inserta el nuevo nodo en el heap
         MinHeapInsert(minHeap, merged, size);
     }
 
+    // El último nodo en el heap es la raíz del Árbol de Huffman
     TreeNode *root = minHeap[0];
     root->parent = nullptr;
     delete[] minHeap;
     return root;
 }
+
+// Esta función genera los códigos Huffman para cada símbolo en un árbol de Huffman.
 void generateHuffmanCodes(TreeNode *node, char *code, char **codes)
 {
+    // Si el nodo es nulo, no hay nada que hacer.
     if (!node)
         return;
 
+    // Si el nodo tiene un símbolo (es decir, no es un nodo interno), entonces hemos encontrado un símbolo.
     if (node->symbol != '\0')
     {
-        // Imprime el símbolo y su código asignado
-        std::cout << "Simbolo: " << node->symbol << ", Codigo: " << code << std::endl;
-
-        // Copia el código directamente sin usar strlen
+        // Copia el código actual al array de códigos para este símbolo.
         int i = 0;
         while (code[i] != '\0')
         {
             codes[node->symbol][i] = code[i];
             i++;
         }
-        codes[node->symbol][i] = '\0';
+        codes[node->symbol][i] = '\0';  // Asegura que el código es una cadena terminada en null.
     }
 
-    // Construye los códigos izquierdo y derecho sin usar strlen
+    // Prepara los códigos para los hijos izquierdo y derecho.
     char *left_code = new char[32];
     char *right_code = new char[32];
 
+    // Copia el código actual a los códigos de los hijos.
     int i = 0;
     while (code[i] != '\0')
     {
@@ -139,37 +162,46 @@ void generateHuffmanCodes(TreeNode *node, char *code, char **codes)
         i++;
     }
 
+    // Añade un '0' al final del código del hijo izquierdo y un '1' al final del código del hijo derecho.
     left_code[i] = '0';
     left_code[i + 1] = '\0';
 
     right_code[i] = '1';
     right_code[i + 1] = '\0';
 
+    // Llama a la función recursivamente para los hijos izquierdo y derecho.
     generateHuffmanCodes(node->left_son, left_code, codes);
     generateHuffmanCodes(node->right_son, right_code, codes);
 
+    // Libera la memoria de los códigos de los hijos.
     delete[] left_code;
     delete[] right_code;
 }
 
+// Esta función decodifica un texto codificado con códigos Huffman.
 void decodeHuffmanText(TreeNode *root, const char *textoCodificado)
 {
-    //std::cout << "vamos a ver si es antes o despues "<<textoCodificado<< std::endl;
+    // Comienza en la raíz del árbol de Huffman.
     TreeNode *current = root;
+
+    // Recorre cada carácter del texto codificado.
     for (int i = 0; textoCodificado[i] != '\0'; i++)
     {
+        // Si el carácter es '0', se mueve al hijo izquierdo del nodo actual.
         if (textoCodificado[i] == '0')
         {
             current = current->left_son;
         }
+        // Si el carácter es '1', se mueve al hijo derecho del nodo actual.
         else if (textoCodificado[i] == '1')
         {
             current = current->right_son;
         }
 
+        // Si el nodo actual es una hoja (es decir, no tiene hijos), entonces hemos encontrado un símbolo.
         if (current->left_son == nullptr && current->right_son == nullptr)
         {
-            // Si el símbolo es un espacio en blanco (representado por ' '), imprímelo como tal
+            // Imprime el símbolo. Si el símbolo es un espacio en blanco, se imprime como tal.
             if (current->symbol == ' ')
             {
                 std::cout << " ";
@@ -178,6 +210,8 @@ void decodeHuffmanText(TreeNode *root, const char *textoCodificado)
             {
                 std::cout << current->symbol;
             }
+
+            // Vuelve a la raíz del árbol para empezar a decodificar el siguiente símbolo.
             current = root;
         }
     }
@@ -368,39 +402,151 @@ int main()
     char root_code[32] = "";
     generateHuffmanCodes(root, root_code, huffmanCodes);
 
-    std::cout << "Ingrese una cadena para codificar: ";
     char inputText[256];
-    //std::cin.ignore(); Este cin.ignore es el que me estaba haciendo clavo
-    std::cin.getline(inputText, sizeof(inputText));
-
-    char textoCodificado[256 * 32] = ""; // Ajustar el tamaño según tus necesidades
+    char textoCodificado[256 * 32] = "";
     int index = 0;
 
-    for (int i = 0; inputText[i] != '\0'; i++)
+    int option;
+    bool textoAlmacenado = false;
+    bool huffmanAplicado = false;
+    int contador = 0;
+
+    do
     {
-        //char c = tolower(inputText[i]);
-        char *huffmanCode = huffmanCodes[inputText[i]];
-
-        int j = 0;
-        while (huffmanCode[j] != '\0')
+        std::cout << "1. Ingresar texto a modificar\n"
+                  << "2. Consultar texto a modificar almacenado\n"
+                  << "3. Aplicar Algoritmo de Huffman\n"
+                  << "4. Consultar texto modificado almacenado\n"
+                  << "5. Salir del programa\n"
+                  << "Ingrese la opcion: ";
+        while (!(std::cin >> option))
         {
-            textoCodificado[index++] = huffmanCode[j++];
+            std::cout << "Error: Por favor, ingrese un número válido.\n";
+            std::cout << "Por favor ingrese una Opcion válida: ";
+            std::cin.clear();            // Limpiar el estado de error
+            std::cin.ignore(1000, '\n'); // Descartar la entrada no válida
         }
-    }
+        std::cout << "\n"
+                  << std::endl;
+        std::cin.ignore(); // Limpiar el buffer de entrada
 
-    // Asegúrate de agregar el carácter nulo al final de la cadena.
-    textoCodificado[index] = '\0';
+        switch (option)
+        {
+        case 1:
+        {
+            // Reset variables
+            inputText[0] = '\0';
+            textoCodificado[0] = '\0';
+            index = 0;
+            textoAlmacenado = false;
+            huffmanAplicado = false;
 
-    std::cout << "Texto codificado: " << textoCodificado << std::endl;
+            std::cout << "Ingrese una cadena para codificar: ";
+            std::cin.getline(inputText, sizeof(inputText));
 
+            textoAlmacenado = true;
+
+            // Reconstruye el árbol de Huffman y regenera los códigos de Huffman
+            root = buildHuffmanTree(nodes, numNodes);
+            for (int i = 0; i < 256; i++)
+            {
+                huffmanCodes[i] = new char[32];
+                huffmanCodes[i][0] = '\0';
+            }
+            char root_code[32] = "";
+            generateHuffmanCodes(root, root_code, huffmanCodes);
+            break;
+        }
+        case 2:
+        {
+            std::cout << "Texto a modificar almacenado: ";
+            bool isEmpty = true; // Inicializar la variable
+
+            for (int i = 0; inputText[i] != '\0'; i++)
+            {
+                std::cout << inputText[i];
+
+                isEmpty = false;
+            }
+
+            if (isEmpty)
+            {
+                std::cout << "No hay Ningun Texto Almacenado";
+            }
+
+            std::cout << std::endl;
+            break;
+        }
+
+        case 3:
+        {
+            if (!textoAlmacenado)
+            {
+                std::cout << "Error: No hay texto almacenado. Ingrese un texto primero." << std::endl;
+            }
+            else if (huffmanAplicado)
+            {
+                std::cout << "Error: El algoritmo de Huffman ya se aplicó a este texto." << std::endl;
+            }
+            else
+            {
+                for (int i = 0; inputText[i] != '\0'; i++)
+                {
+                    // char c = tolower(inputText[i]);
+                    char *huffmanCode = huffmanCodes[inputText[i]];
+
+                    int j = 0;
+                    while (huffmanCode[j] != '\0')
+                    {
+                        textoCodificado[index++] = huffmanCode[j++];
+                    }
+                }
+                // Asegúrate de agregar el carácter nulo al final de la cadena.
+                textoCodificado[index] = '\0';
+                std::cout << "Texto codificado: " << textoCodificado << std::endl;
+                huffmanAplicado = true;
+                for (int i = 0; i < 256; i++)
+                {
+                    delete[] huffmanCodes[i];
+                }
+            }
+            break;
+        }
+        case 4:
+        {
+            if (!textoAlmacenado)
+            {
+                std::cout << "Error: No hay texto almacenado. Ingrese un texto primero." << std::endl;
+            }
+            else
+            {
+                std::cout << "Resultados Del Algoritmo: " << std::endl;
+                std::cout << "Texto Cifrado por Huffman: " << textoCodificado << std::endl;
+                std::cout << "Texto Decifrado: ";
+                decodeHuffmanText(root, textoCodificado);
+                std::cout << std::endl;
+            }
+            break;
+        }
+        case 5:
+        {
+            std::cout << "Saliendo del programa.\n";
+            break;
+        }
+        default:
+        {
+            std::cout << "Opcion no válida. Inténtelo de nuevo.\n";
+            break;
+        }
+        }
+
+    } while (option != 5);
+
+    // Liberar memoria
     for (int i = 0; i < 256; i++)
-    {   
+    {
         delete[] huffmanCodes[i];
     }
-
-    std::cout << "Texto decodificado: ";
-    decodeHuffmanText(root, textoCodificado);
-    std::cout << std::endl;
 
     return 0;
 }
