@@ -10,18 +10,6 @@ struct TreeNode
     double probability; /* Este valor de probabilidad variara conforme el dado segun la tabla de probabilidad de cada Elemento */
 };
 
-/*Declaramos las Funciones a Utilizar*/
-TreeNode *crearNodo(char symbol, double probability);
-void MinHeapInsert(TreeNode **heap, TreeNode *newNode, int &heapSize);
-void MinHeapify(TreeNode **heap, int heapSize, int currentIdx);
-TreeNode *MinHeapExtractMin(TreeNode **heap, int &heapSize);
-int BussinesLogic();
-
-int main()
-{
-    BussinesLogic();
-}
-
 TreeNode *crearNodo(char symbol, double probability)
 {
     TreeNode *newnode = new TreeNode;
@@ -180,4 +168,9 @@ int BussinesLogic()
     }
 
     return 0;
+}
+
+int main()
+{
+    BussinesLogic();
 }

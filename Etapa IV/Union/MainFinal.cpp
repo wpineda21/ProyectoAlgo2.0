@@ -115,7 +115,7 @@ void generateHuffmanCodes(TreeNode *node, char *code, char **codes)
     if (node->symbol != '\0')
     {
         // Imprime el símbolo y su código asignado
-        // std::cout << "Simbolo: " << node->symbol << ", Codigo: " << code << std::endl;
+        std::cout << "Simbolo: " << node->symbol << ", Codigo: " << code << std::endl;
 
         // Copia el código directamente sin usar strlen
         int i = 0;
